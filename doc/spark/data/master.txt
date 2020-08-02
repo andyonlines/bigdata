@@ -1,0 +1,34 @@
+val rpcEnv: RpcEnv = RpcEnv.create(SYSTEM_NAME, host, port, conf, securityMgr) // ->
+    本质是 NettyRpcEnv
+
+val masterEndpoint: RpcEndpointRef = rpcEnv.setupEndpoint(ENDPOINT_NAME,
+            new Master(rpcEnv, rpcEnv.address, webUiPort, securityMgr, conf)) //->
+
+
+ The life-cycle of an endpoint is:
+ constructor -> onStart -> receive* -> onStop
+
+ // java中的线程池  只能跑一个后台线程的线程池
+private val forwardMessageThread: ScheduledExecutorService =
+    ThreadUtils.newDaemonSingleThreadScheduledExecutor("master-forward-message-thread")
+
+// 传递的线程, 会没隔60s执行一次!
+checkForWorkerTimeOutTask = forwardMessageThread.scheduleAtFixedRate(new Runnable {
+            override def run(): Unit = Utils.tryLogNonFatalError {
+                self.send(CheckForWorkerTimeOut) // 自己给自己发送信息
+            }
+        }, 0, WORKER_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+
+0: 延迟执行的时间
+WORKER_TIMEOUT_MS:执行频率
+
+timeOutDeadWorkers()
+
+// 所有注册成功的worker
+val workers = new HashSet[WorkerInfo]
+
+// 每60秒判断一次work是否超时(失联60s), 如果超时, 则异常. 通过上次的心跳时间来确定
+
+
+总结: 
+    每60秒判断一次work是否超时(失联60s), 如果超时, 则异常. 通过上次的心跳时间来确定

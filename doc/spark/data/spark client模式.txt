@@ -1,0 +1,52 @@
+spark client模式
+
+SparkSubmit    
+ExecutorLauncher   (ApplicationMaster)
+CoarseGrainedExecutorBackend  
+
+------
+
+SparkSubmit
+    childMainClass = args.mainClass  // 用户主类
+
+    mainMethod.invoke(null, childArgs.toArray)
+
+    用户代码:
+        非常重要的东西: 创建SparkContext
+
+-------
+SparkContext:
+    new SparkContext(...)
+    需要去看构造器
+
+
+    val (sched, ts): (SchedulerBackend, TaskScheduler) = SparkContext.createTaskScheduler(this, master, deployMode)
+
+        val scheduler: TaskScheduler = cm.createTaskScheduler(sc, masterUrl)
+        // 创建 SchedulerBackend. 实际类型是: YarnClientSchedulerBackend
+        val backend: SchedulerBackend = cm.createSchedulerBackend(sc, masterUrl, scheduler)
+        // 初始化 TaskScheduler 和 SchedulerBackend
+        cm.initialize(scheduler, backend)
+        // 返回 SchedulerBackend 和 TaskScheduler
+        (backend, scheduler)
+    
+
+    _schedulerBackend = sched
+    _taskScheduler = ts
+    // 创建 DAGScheduler  stage的划分, 任务的划分, 把任务封装成 TaskSet 交给TaskScheduler调度
+    _dagScheduler = new DAGScheduler(this)
+    // 启动 TaskSheduler   重要的代码 !
+    _taskScheduler.start()
+
+            backend.start()
+
+                client.submitApplication()
+
+                amClass = org.apache.spark.deploy.yarn.ExecutorLauncher
+
+
+
+
+
+
+

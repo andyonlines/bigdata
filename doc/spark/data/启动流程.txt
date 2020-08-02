@@ -1,0 +1,38 @@
+standalone模式:
+分析集群启动的流程
+------
+启动:
+    sbin/start-all.sh
+
+        # Start Master
+        "${SPARK_HOME}/sbin"/start-master.sh
+            CLASS="org.apache.spark.deploy.master.Master"
+            "${SPARK_HOME}/sbin"/spark-daemon.sh start $CLASS 1 \
+                                      --host $SPARK_MASTER_HOST  \
+                                      --port $SPARK_MASTER_PORT  \
+                                      --webui-port $SPARK_MASTER_WEBUI_PORT \
+                                        $ORIGINAL_ARGS
+
+            $option=start
+            command=$1
+
+            run_command class "$@"
+
+            mode="$1"  // mode=class
+            execute_command nice -n "$SPARK_NICENESS" "${SPARK_HOME}"/bin/spark-class "$command" "$@"
+
+            nohup -- "$@" >> $log 2>&1 < /dev/null &
+
+
+            CMD=("${CMD[@]:0:$LAST}")
+            exec "${CMD[@]}"
+
+            /opt/module/jdk1.8.0_144/bin/java 
+                    -cp /opt/module/spark-standalone/conf/:/opt/module/spark-standalone/jars/* -Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=hadoop102:2181,hadoop103:2181,hadoop104:2181 -Dspark.deploy.zookeeper.dir=/spark1128 -Xmx1g 
+                    org.apache.spark.deploy.master.Master 
+                            --host hadoop102 --port 7077 --webui-port 8080
+
+      
+
+        # Start Workers
+        "${SPARK_HOME}/sbin"/start-slaves.sh

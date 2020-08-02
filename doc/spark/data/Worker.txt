@@ -1,0 +1,49 @@
+opt/module/jdk1.8.0_144/bin/java 
+-cp /opt/module/spark-standalone/conf/:/opt/module/spark-standalone/jars/* 
+-Dspark.deploy.recoveryMode=ZOOKEEPER 
+-Dspark.deploy.zookeeper.url=hadoop102:2181,hadoop103:2181,hadoop104:2181 
+-Dspark.deploy.zookeeper.dir=/spark1128 -Xmx1g 
+org.apache.spark.deploy.worker.Worker --webui-port 8081 spark://hadoop102:7077
+
+
+org.apache.spark.deploy.worker.Worke
+
+// 向master注册worker
+registerWithMaster()
+
+// 尝试去向master注册, 但是有可能注册失败.
+// 比如master还没有启动成功, 或者网络有问题
+registerMasterFutures = tryRegisterAllMasters()
+
+
+masterRpcAddresses.map { masterAddress =>
+            // 从线程池中启动线程来执行 Worker 向 Master 注册
+            registerMasterThreadPool.submit(new Runnable {
+                override def run(): Unit = {
+                    try {
+                        logInfo("Connecting to master " + masterAddress + "...")
+                        // 根据 Master 的地址得到一个 Master 的 RpcEndpointRef, 然后就可以和 Master 进行通讯了.
+                        val masterEndpoint: RpcEndpointRef = rpcEnv.setupEndpointRef(masterAddress, Master.ENDPOINT_NAME)
+                        // 向 Master 注册
+                        registerWithMaster(masterEndpoint)
+                    } catch {
+                        case ie: InterruptedException => // Cancelled
+                        case NonFatal(e) => logWarning(s"Failed to connect to master $masterAddress", e)
+                    }
+                }
+            })
+        }
+
+registerWithMaster(masterEndpoint)
+
+ masterEndpoint.ask[RegisterWorkerResponse](RegisterWorker(
+            workerId, host, port, self, cores, memory, workerWebUiUrl))
+
+给master发送信息:
+    RegisterWorker
+
+注册成功: 
+private val HEARTBEAT_MILLIS = conf.getLong("spark.worker.timeout", 60) * 1000 / 4
+
+
+sendToMaster(Heartbeat(workerId, self))

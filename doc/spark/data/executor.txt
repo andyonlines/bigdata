@@ -1,0 +1,16 @@
+
+org.apache.spark.executor.CoarseGrainedExecutorBackend
+    run(driverUrl, executorId, hostname, cores, appId, workerUrl, userClassPath)
+
+    // 创建 SparkEnv对象
+    val env: SparkEnv = SparkEnv.createExecutorEnv(
+        driverConf, executorId, hostname, port, cores, cfg.ioEncryptionKey, isLocal = false)
+
+    new CoarseGrainedExecutorBackend(
+                env.rpcEnv, driverUrl, executorId, hostname, cores, userClassPath, env
+
+    ref.ask[Boolean](RegisterExecutor(executorId, self, hostname, cores, extractLogUrls))
+
+
+    成功之后: 
+    executor = new Executor(executorId, hostname, env, userClassPath, isLocal = false)

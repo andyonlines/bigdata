@@ -1,0 +1,40 @@
+org.apache.spark.deploy.SparkSubmit
+
+在SparkSubmit的main线程中执行: (找到client, 执行他的main函数)
+    val (childArgs, childClasspath, sysProps, childMainClass) = prepareSubmitEnvironment(args) // ->
+
+    childMainClass:   org.apache.spark.deploy.yarn.Client
+        childMainClass = args.mainClass   第一次:用户主类
+        // 在 yarn 集群模式下, 使用yarn.Client来封装一下 user class
+        childMainClass = "org.apache.spark.deploy.yarn.Client"
+
+
+    runMain(childArgs, childClasspath, sysProps, childMainClass, args.verbose)
+
+    // 使用反射的方式加载 childMainClass = "org.apache.spark.deploy.yarn.Client"
+    mainClass = Utils.classForName(childMainClass) 
+
+    // 反射main方法
+    val mainMethod: Method = mainClass.getMethod("main", new Array[String](0).getClass)
+
+    mainMethod.invoke(null, childArgs.toArray)
+
+    org.apache.spark.deploy.yarn.Client:  执行main函数
+
+        submitApplication()
+
+            val containerContext: ContainerLaunchContext = createContainerLaunchContext(newAppResponse) // -> 核心代码
+            // 创建应用程序提交任务上下文
+            val appContext = createApplicationSubmissionContext(newApp, containerContext)
+            
+            // Finally, submit and monitor the application
+            logInfo(s"Submitting application $appId to ResourceManager")
+            // 提交应用给 ResourceManager 启动 ApplicationMaster
+            // org.apache.spark.deploy.yarn.ApplicationMaster
+            yarnClient.submitApplication(appContext)
+
+            amClass = Utils.classForName("org.apache.spark.deploy.yarn.ApplicationMaster").getName
+
+
+
+

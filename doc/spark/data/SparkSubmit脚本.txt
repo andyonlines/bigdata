@@ -1,0 +1,14 @@
+SparkSubmit
+ApplicationMaster
+CoarseGrainedExecutorBackend
+
+
+exec "${SPARK_HOME}"/bin/spark-class org.apache.spark.deploy.SparkSubmit "$@"
+
+/opt/module/jdk1.8.0_144/bin/java 
+-cp /opt/module/spark-yarn/conf/:/opt/module/spark-yarn/jars/*:/opt/module/hadoop-2.7.2/etc/hadoop/ 
+org.apache.spark.deploy.SparkSubmit 
+--master yarn 
+--deploy-mode cluster 
+--class org.apache.spark.examples.SparkPi 
+./examples/jars/spark-examples_2.11-2.1.1.jar 1000
